@@ -154,7 +154,8 @@ module.exports = class DNSMASQ {
       this.counter = {
         reloadDnsmasq: 0,
         writeHostsFile: 0,
-        restart: 0
+        restart: 0,
+        restartDHCP: 0
       }
       this.dnsTag = {
         adblock: "$adblock"
@@ -249,6 +250,20 @@ module.exports = class DNSMASQ {
     }, 5000);
   }
 
+  scheduleReloadDNSService() {
+    if (this.reloadDNSTask)
+      clearTimeout(this.reloadDNSTask);
+    this.reloadDNSTask = setTimeout(async () => {
+      this.counter.reloadDnsmasq++;
+      log.info(`Reloading ${SERVICE_NAME}`, this.counter.reloadDnsmasq);
+      await execAsync(`sudo systemctl reload ${SERVICE_NAME}`).then(() => {
+        log.info(`${SERVICE_NAME} has been reloaded`, this.counter.reloadDnsmasq);
+      }).catch((err) => {
+        log.error(`Failed to reload ${SERVICE_NAME} service`, err.message);
+      });
+    }, 5000);
+  }
+
   scheduleRestartDHCPService(ignoreFileCheck = false) {
     if (this.restartDHCPTask)
       clearTimeout(this.restartDHCPTask);
@@ -259,10 +274,10 @@ module.exports = class DNSMASQ {
           return;
       }
       await execAsync(`sudo systemctl stop ${DHCP_SERVICE_NAME}`).catch((err) => { });
-      this.counter.reloadDnsmasq++;
-      log.info(`Restarting ${DHCP_SERVICE_NAME}`, this.counter.reloadDnsmasq);
+      this.counter.restartDHCP++;
+      log.info(`Restarting ${DHCP_SERVICE_NAME}`, this.counter.restartDHCP);
       await execAsync(`sudo systemctl restart ${DHCP_SERVICE_NAME}`).then(() => {
-        log.info(`${DHCP_SERVICE_NAME} has been restarted`, this.counter.reloadDnsmasq);
+        log.info(`${DHCP_SERVICE_NAME} has been restarted`, this.counter.restartDHCP);
       }).catch((err) => {
         log.error(`Failed to restart ${DHCP_SERVICE_NAME} service`, err.message);
       });
@@ -1432,7 +1447,7 @@ module.exports = class DNSMASQ {
     try {
       const dnsmasqConfKey = "dnsmasq:conf";
       let md5sumNow = '';
-      for (const confs of [`${FILTER_DIR}*`, resolvFile, startScriptFile, configFile, HOSTFILE_PATH, `${HOSTS_DIR}/*`]) {
+      for (const confs of [`${FILTER_DIR}*`, resolvFile, startScriptFile, configFile, HOSTFILE_PATH]) {
         const { stdout } = await execAsync(`find ${confs} -type f | sort | xargs cat | md5sum | awk '{print $1}'`);
         md5sumNow = md5sumNow + (stdout ? stdout.split('\n').join('') : '');
       }

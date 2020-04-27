@@ -21,7 +21,7 @@ function install_dependencies()
 
     # TODO: check local apt mirror
     echo "Installing node source repository..."
-    sudo  curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -   || perr_and_exit "Failed to install node source repo"
+    sudo  curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -   || perr_and_exit "Failed to install node source repo"
 
     echo "Executing apt-get update, please be patient..."
     sudo apt-get update   || perr_and_exit "apt-get update failed."

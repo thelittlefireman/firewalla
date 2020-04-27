@@ -367,7 +367,7 @@ cd ..
 
 cd extension/httpd
 if [[ -f /.dockerenv ]]; then
-    forever start -a --uid root httpd.js
+    forever start -a --uid root app.js
 else
     # sudo systemctl restart firehttpd
     echo test > /dev/null

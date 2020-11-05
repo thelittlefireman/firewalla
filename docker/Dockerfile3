@@ -1,0 +1,40 @@
+# DOCKER-VERSION 1.0.0
+FROM ubuntu:16.04
+#FROM ubuntu:18:04
+# install required packages, in one command
+RUN apt-get update
+RUN apt-get install -y git curl sudo telnet netcat host wget netcat inetutils-ping
+
+# fake pi user just for error in scripts/utils DO NOT USE
+RUN useradd -m pi -s /bin/bash && \
+    echo "pi ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+#RUN echo 'deb http://download.opensuse.org/repositories/network:/bro/xUbuntu_16.04/ /' >> /etc/apt/sources.list.d/bro.list
+
+# bro missing ?
+#RUN apt-get update
+#RUN apt-get install bro -y --allow-unauthenticated
+
+#RUN ln -s /opt/bro /usr/local/bro
+
+#RUN su - pi -c "git clone --single-branch --branch beta_9_0 https://github.com/firewalla/firewalla.git"
+RUN mkdir -p /home/pi/firewalla
+COPY ./ /home/pi/firewalla/
+
+WORKDIR /home/pi/firewalla
+RUN git config --global user.name "firewalla" \
+&& git config --global user.email "firewalla@company.com" \
+&& git config user.name "pi" \
+&& git config user.email "firewalla@company.com"
+
+
+RUN "./buildraw_aarch64.sh"
+
+
+EXPOSE 8388
+EXPOSE 8833
+EXPOSE 8834
+EXPOSE 6379
+
+# run application
+CMD service redis-server start; "scripts/main-run"; /bin/bash

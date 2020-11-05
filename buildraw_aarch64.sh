@@ -56,12 +56,23 @@ function install_dependencies() {
 		echo "Setting special npm configuration for Docker enviornment..."
 		# a workaround for npm/nodejs bug
 		# https://github.com/npm/npm/issues/4719
-		sudo npm config set unsafe-perm true
+		npm config set unsafe-perm true
 	fi
-
-	echo "Installing tools: forever and xml-json..."
-	sudo npm install forever -g
-	sudo npm install xml-json -g
+	
+	if [[ -f /.dockerenv ]]; then
+		echo "Setting special npm configuration for Docker enviornment..."
+		# a workaround for npm/nodejs bug
+		# https://github.com/npm/npm/issues/4719
+		npm config set unsafe-perm true
+		echo "Installing tools: forever and xml-json..."
+		npm install forever -g
+		npm install xml-json -g
+		npm install -g nodemon
+	else
+		echo "Installing tools: forever and xml-json..."
+		sudo npm install forever -g
+		sudo npm install xml-json -g
+	fi
 
 	echo "Setting up required folders and configures..."
 	sudo mkdir -p /blog || perr_and_exit "Failed to create folder /blog"

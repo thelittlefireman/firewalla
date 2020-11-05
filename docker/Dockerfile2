@@ -16,7 +16,7 @@ RUN useradd -m pi -s /bin/bash && \
 
 #RUN ln -s /opt/bro /usr/local/bro
 
-RUN su - pi -c "git clone https://github.com/firewalla/firewalla.git"
+RUN su - pi -c "git clone --single-branch --branch beta_9_0 https://github.com/firewalla/firewalla.git"
 RUN su - pi -c "cd firewalla ; ./buildraw"
 
 RUN npm install -g nodemon
